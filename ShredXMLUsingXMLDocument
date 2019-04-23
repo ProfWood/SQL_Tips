@@ -1,0 +1,9 @@
+declare @string varchar(max) = 'one,two,three,four,five,six,seven,eight,nine,ten,eleven,twelve,thirteen,fourteen,fifteen,sixteen,seventeen,eighteen,nineteen,twenty,yan,tan,tether,mether,pip,azer,sezar,akker,conter,dick,yan-a-dick, tan-a-dick,tether-a-dick,mether-a-dick,bumfit,yan-a-bum,tan-a-bum,tether-a-bum,mether-a-bum,jiggit'
+
+declare @xml xml = '<list><a>' + replace(@string,',','</a><a>') + '</a></list>'
+
+declare @idoc int
+--Create an internal representation of the XML document.  
+EXEC sp_xml_preparedocument @idoc OUTPUT, @xml;   
+SELECT * FROM OPENXML (@idoc, '/list/a') with (a varchar(20) './text()')
+EXEC sp_xml_removedocument @idoc;  /* important to remember this to prevent memory leaks */
