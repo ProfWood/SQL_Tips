@@ -1,9 +1,38 @@
+/*
+Simple list shredding
+*/
 declare @string varchar(max) = 'one,two,three,four,five,six,seven,eight,nine,ten,eleven,twelve,thirteen,fourteen,fifteen,sixteen,seventeen,eighteen,nineteen,twenty,yan,tan,tether,mether,pip,azer,sezar,akker,conter,dick,yan-a-dick, tan-a-dick,tether-a-dick,mether-a-dick,bumfit,yan-a-bum,tan-a-bum,tether-a-bum,mether-a-bum,jiggit'
 
 declare @xml xml = '<list><a>' + replace(@string,',','</a><a>') + '</a></list>'
 
 declare @idoc int
 --Create an internal representation of the XML document.  
-EXEC sp_xml_preparedocument @idoc OUTPUT, @xml;   
-SELECT * FROM OPENXML (@idoc, '/list/a') with (a varchar(20) './text()')
-EXEC sp_xml_removedocument @idoc;  /* important to remember this to prevent memory leaks */
+exec sp_xml_preparedocument @idoc OUTPUT, @xml;   
+select * from openxml (@idoc, '/list/a') with (a varchar(20) './text()')
+exec sp_xml_removedocument @idoc;  /* important to remember this to prevent memory leaks */
+
+/*
+Shredding tuples
+*/
+
+declare @string varchar(max) = 'UKGVCR249858,asLyPLWU
+UKGVCR239821,mPzGDdLY
+UKGVCR249666,7EmpskpY
+UKGVCR248923,wuTmszde'
+
+-- Note where the newlines are......
+set @str = '<list><item><a>' + replace(replace(@str,',','</a><b>'),'
+','</b></item><item><a>') + '</b></item></list>'
+declare @xml xml = cast(@str as xml)
+
+declare @idoc int
+exec sp_xml_preparedocument @idoc output, @xml; 
+select 
+  * 
+  from openxml (@idoc, '/list/item')
+    with
+    (
+        projectNumber varchar(20) './a/text()'
+      , refid varchar(20) './b/text()'
+    )
+exec sp_xml_removedocument @idoc;  /* important to remember this to prevent memory leaks */
